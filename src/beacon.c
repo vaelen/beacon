@@ -23,7 +23,11 @@
 
 #include "config.h"
 
-int receive(struct iio_context *ctx)
+const long FREQ_S = 1294500000;
+const long FREQ_U = 432320000;
+const long RATE_5M = 5000000;
+
+void receive(struct iio_context *ctx)
 {
 	struct iio_device *dev;
 	struct iio_channel *rx0_i, *rx0_q;
@@ -40,7 +44,7 @@ int receive(struct iio_context *ctx)
 	rxbuf = iio_device_create_buffer(dev, 4096, false);
 	if (!rxbuf) {
 		perror("Could not create RX buffer");
-		return 1;
+		return;
 	}
  
 	while (true) {
@@ -62,8 +66,30 @@ int receive(struct iio_context *ctx)
 	}
  
 	iio_buffer_destroy(rxbuf);
-	return 0;
  
+}
+
+void transmit(struct iio_context *ctx)
+{
+	struct iio_device *dev;
+	struct iio_channel *tx0_i, *tx0_q;
+	struct iio_buffer *txbuf;
+ 
+	dev = iio_context_find_device(ctx, "cf-ad9361-dds-core-lpc");
+ 
+	tx0_i = iio_device_find_channel(dev, "voltage0", true);
+	tx0_q = iio_device_find_channel(dev, "voltage1", true);
+ 
+	iio_channel_enable(tx0_i);
+	iio_channel_enable(tx0_q);
+
+	txbuf = iio_device_create_buffer(dev, 4096, false);
+	if (!txbuf) {
+		perror("Could not create TX buffer");
+		return;
+	}
+
+	iio_buffer_destroy(txbuf);
 }
  
 int main (int argc, char **argv)
@@ -75,17 +101,20 @@ int main (int argc, char **argv)
  
 	phy = iio_context_find_device(ctx, "ad9361-phy");
  
+
+	// Set TX frequency
 	iio_channel_attr_write_longlong(
-		iio_device_find_channel(phy, "altvoltage0", true),
+		iio_device_find_channel(phy, "altvoltage1", true),
 		"frequency",
-		2400000000); /* RX LO frequency 2.4GHz */
+		FREQ_S);
  
+  	// Set TX baseband rate to 5 MSPS
 	iio_channel_attr_write_longlong(
-		iio_device_find_channel(phy, "voltage0", false),
+		iio_device_find_channel(phy, "voltage0", true),
 		"sampling_frequency",
-		5000000); /* RX baseband rate 5 MSPS */
+		RATE_5M);
  
-	receive(ctx);
+	transmit(ctx);
  
 	iio_context_destroy(ctx);
  
