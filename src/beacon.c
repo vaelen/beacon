@@ -27,13 +27,32 @@ const long FREQ_S = 1294500000;
 const long FREQ_U = 432320000;
 const long RATE_5M = 5000000;
 
-void receive(struct iio_context *ctx)
+const char* DEV_NAME = "ad9361-phy";
+const char* RX_DEV_NAME = "cf-ad9361-lpc";
+const char* TX_DEV_NAME = "cf-ad9361-dds-core-lpc";
+
+void receive(struct iio_context *ctx, const long freq, const long samp_rate)
 {
+	struct iio_device *phy;
 	struct iio_device *dev;
 	struct iio_channel *rx0_i, *rx0_q;
 	struct iio_buffer *rxbuf;
+
+	phy = iio_context_find_device(ctx, DEV_NAME);
  
-	dev = iio_context_find_device(ctx, "cf-ad9361-lpc");
+	// Set frequency
+	iio_channel_attr_write_longlong(
+		iio_device_find_channel(phy, "altvoltage0", false),
+		"frequency",
+		freq);
+ 
+  	// Set baseband sampling rate
+	iio_channel_attr_write_longlong(
+		iio_device_find_channel(phy, "voltage0", false),
+		"sampling_frequency",
+		samp_rate);
+ 
+	dev = iio_context_find_device(ctx, RX_DEV_NAME);
  
 	rx0_i = iio_device_find_channel(dev, "voltage0", 0);
 	rx0_q = iio_device_find_channel(dev, "voltage1", 0);
@@ -69,13 +88,29 @@ void receive(struct iio_context *ctx)
  
 }
 
-void transmit(struct iio_context *ctx)
+void transmit(struct iio_context *ctx, const long freq, const long samp_rate)
 {
+	struct iio_device *phy;
 	struct iio_device *dev;
 	struct iio_channel *tx0_i, *tx0_q;
 	struct iio_buffer *txbuf;
  
-	dev = iio_context_find_device(ctx, "cf-ad9361-dds-core-lpc");
+
+	phy = iio_context_find_device(ctx, DEV_NAME);
+ 
+	// Set frequency
+	iio_channel_attr_write_longlong(
+		iio_device_find_channel(phy, "altvoltage1", true),
+		"frequency",
+		freq);
+ 
+  	// Set baseband rate to 5 MSPS
+	iio_channel_attr_write_longlong(
+		iio_device_find_channel(phy, "voltage0", true),
+		"sampling_frequency",
+		samp_rate);
+
+	dev = iio_context_find_device(ctx, TX_DEV_NAME);
  
 	tx0_i = iio_device_find_channel(dev, "voltage0", true);
 	tx0_q = iio_device_find_channel(dev, "voltage1", true);
@@ -95,26 +130,10 @@ void transmit(struct iio_context *ctx)
 int main (int argc, char **argv)
 {
 	struct iio_context *ctx;
-	struct iio_device *phy;
  
 	ctx = iio_create_context_from_uri("ip:192.168.2.1");
  
-	phy = iio_context_find_device(ctx, "ad9361-phy");
- 
-
-	// Set TX frequency
-	iio_channel_attr_write_longlong(
-		iio_device_find_channel(phy, "altvoltage1", true),
-		"frequency",
-		FREQ_S);
- 
-  	// Set TX baseband rate to 5 MSPS
-	iio_channel_attr_write_longlong(
-		iio_device_find_channel(phy, "voltage0", true),
-		"sampling_frequency",
-		RATE_5M);
- 
-	transmit(ctx);
+	transmit(ctx, FREQ_S, RATE_5M);
  
 	iio_context_destroy(ctx);
  
