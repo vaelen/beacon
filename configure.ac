@@ -14,10 +14,22 @@ AC_PROG_CC
 AC_SEARCH_LIBS([iio_context_find_device], [iio], [], [
   AC_MSG_ERROR([required library libiio not found])
 ])
+AC_SEARCH_LIBS([sin], [m], [], [
+  AC_MSG_ERROR([required library libm not found])
+])
+AC_SEARCH_LIBS([ad9361_set_bb_rate], [ad9361], [], [
+  AC_MSG_ERROR([required library libad9361 not found])
+])
 
 # Checks for header files.
 AC_CHECK_HEADER([iio.h], [], [
   AC_MSG_ERROR([required header iio.h not found])
+])
+AC_CHECK_HEADER([math.h], [], [
+  AC_MSG_ERROR([required header math.h not found])
+])
+AC_CHECK_HEADER([ad9361.h], [], [
+  AC_MSG_ERROR([required header ad9361.h not found])
 ])
 
 # Checks for typedefs, structures, and compiler characteristics.
