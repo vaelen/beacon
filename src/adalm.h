@@ -1,5 +1,5 @@
 /*
-	Copyright 2018, Andrew C. Young <andrew@vaelen.org>
+    Copyright 2018, Andrew C. Young <andrew@vaelen.org>
 
     This file is part of Adalm-Beacon
 
@@ -30,16 +30,16 @@
 
 enum frequency 
 {
-	FREQ_S = 1294500000,
-	FREQ_U = 432320000,
+    FREQ_S = 1294500000,
+    FREQ_U = 432320000,
 };
 
 // https://ez.analog.com/university-program/f/q-a/77879/adalm-pluto-sample-rate
 enum rate 
 {
-	RATE_520K = 520000,
-	RATE_1M = 1000000,
-	RATE_5M = 5000000,
+    RATE_520K = 520000,
+    RATE_1M = 1000000,
+    RATE_5M = 5000000,
 };
 
 const char* DEV_NAME = "ad9361-phy";

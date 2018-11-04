@@ -1,5 +1,5 @@
 /*
-	Copyright 2018, Andrew C. Young <andrew@vaelen.org>
+    Copyright 2018, Andrew C. Young <andrew@vaelen.org>
 
     This file is part of Adalm-Beacon
 

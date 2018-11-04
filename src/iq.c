@@ -1,5 +1,5 @@
 /*
-	Copyright 2018, Andrew C. Young <andrew@vaelen.org>
+    Copyright 2018, Andrew C. Young <andrew@vaelen.org>
 
     This file is part of Adalm-Beacon
 
@@ -28,7 +28,7 @@ double generate_signal(int freq, double amplitude, long samp_rate, complex *iq, 
     double two_pi = 2.0*PI;
     double i = 0.0, q = 0.0;
     double rate = (double)samp_rate/(double)freq;
-	double step = two_pi / rate;
+    double step = two_pi / rate;
     double end = two_pi - step;
 
     double theta = start;
@@ -50,7 +50,7 @@ double generate_signal(int freq, double amplitude, long samp_rate, complex *iq, 
         iq[index] = q + i*I;
 
         theta += step;
-	}
+    }
     return theta;
 }
 

@@ -1,5 +1,5 @@
 /*
-	Copyright 2018, Andrew C. Young <andrew@vaelen.org>
+    Copyright 2018, Andrew C. Young <andrew@vaelen.org>
 
     This file is part of Adalm-Beacon
 
@@ -25,7 +25,7 @@ const int IQ_BUFFER_SIZE = 4096;
 
 void main (int argc, char **argv)
 {
-	signal(SIGINT, handle_sig);
+    signal(SIGINT, handle_sig);
  
     int tone = 600;
     double amp = 10;
@@ -37,7 +37,7 @@ void main (int argc, char **argv)
     fprintf(stderr, "Writing IQ Data - Sampling Rate: %d ", samp_rate);
     while (!stop)
     {
-	    start = generate_signal(tone, amp, samp_rate, iq, IQ_BUFFER_SIZE, start);
+        start = generate_signal(tone, amp, samp_rate, iq, IQ_BUFFER_SIZE, start);
         write_iq(stdout, iq, IQ_BUFFER_SIZE);
         samples += IQ_BUFFER_SIZE;
         fprintf(stderr, ".");

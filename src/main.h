@@ -1,5 +1,5 @@
 /*
-	Copyright 2018, Andrew C. Young <andrew@vaelen.org>
+    Copyright 2018, Andrew C. Young <andrew@vaelen.org>
 
     This file is part of Adalm-Beacon
 
@@ -29,8 +29,8 @@
 static bool stop;
 static void handle_sig(int sig)
 {
-	printf("Waiting for process to finish...\n");
-	stop = true;
+    fprintf(stderr, " Waiting for process to finish...\n");
+    stop = true;
 }
 
 void main (int argc, char **argv);
