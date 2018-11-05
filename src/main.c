@@ -115,11 +115,12 @@ void init(struct beacon_config config)
 #endif
 }
 
-void shutdown()
+void shutdown(int code)
 {
 #ifdef ADALM_SUPPORT
     adalm_shutdown();
 #endif
+    exit(code);
 }
 
 int write_iq_to_device(enum device device, complex *iq, long iq_len)
@@ -146,5 +147,5 @@ void main(int argc, char **argv)
     struct beacon_config config = parse_config(argc, argv);
     init(config);
     transmit(config);
-    shutdown(config);
+    shutdown(0);
 }

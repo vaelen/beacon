@@ -23,6 +23,7 @@
 #define FILE_ADALM_H_SEEN
 
 #include "../config.h"
+#include "global.h"
 
 #include <stdio.h>
 #include <unistd.h>

@@ -99,8 +99,7 @@ void adalm_transmit(complex *iq, int iq_len)
     if (!txbuf)
     {
         perror("Could not create TX buffer");
-        adalm_shutdown();
-        exit(1);
+        shutdown(1);
     }
 
     ssize_t nbytes_tx;
@@ -130,7 +129,6 @@ void adalm_transmit(complex *iq, int iq_len)
     if (nbytes_tx < 0)
     {
         fprintf(stderr, "Error pushing buf %d\n", (int)nbytes_tx);
-        adalm_shutdown();
-        exit(1);
+        shutdown(1);
     }
 }

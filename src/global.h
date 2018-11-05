@@ -18,47 +18,19 @@
 
 */
 
-/* File main.h */
-#ifndef FILE_MAIN_H_SEEN
-#define FILE_MAIN_H_SEEN
+/* File global.h */
+#ifndef FILE_GLOBAL_H_SEEN
+#define FILE_GLOBAL_H_SEEN
 
-#include "global.h"
-
-#include "iq.h"
-
-#ifdef ADALM_SUPPORT
-#include "adalm.h"
-#endif
-
-#include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdbool.h>
 #include <signal.h>
-#include <ctype.h>
 
-enum device
+static bool stop;
+static void handle_sig(int sig)
 {
-    DEVICE_FILE,
-    DEVICE_ADALM
-};
-
-struct beacon_config
-{
-    enum device device;
-    long samp_rate;
-    long tx_freq;
-    double amplitude;
-    long tone_freq;
-};
-
-const double DEFAULT_AMPLITUDE = 10.0;
-const long DEFAULT_TONE_FREQ = 600;
-
-struct beacon_config parse_config(int argc, char **argv);
-void init(struct beacon_config config);
-void main(int argc, char **argv);
-void transmit(struct beacon_config config);
-int write_iq_to_device(enum device device, complex *iq, long iq_len);
-
-#endif /* !FILE_MAIN_H_SEEN */
+    fprintf(stderr, " Waiting for process to finish...\n");
+    stop = true;
+}
+void shutdown(int code);
+#endif /* !FILE_GLOBAL_H_SEEN */
