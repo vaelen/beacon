@@ -27,28 +27,19 @@ const char *TX_DEV_NAME = "cf-ad9361-dds-core-lpc";
 struct iio_context *ctx;
 struct iio_device *phy;
 struct iio_device *tx, *rx;
-struct iio_channel *tx0_i, *tx0_q;
+struct iio_channel *tx0_i, *tx0_q, *rx0_i, *rx0_q;
 struct iio_buffer *txbuf;
 
 void adalm_shutdown()
 {
-    fprintf(stderr, "* Destroying buffers\n");
     if (txbuf)
     {
         iio_buffer_destroy(txbuf);
     }
 
-    fprintf(stderr, "* Disabling streaming channels\n");
-    if (tx0_i)
-    {
-        iio_channel_disable(tx0_i);
-    }
-    if (tx0_q)
-    {
-        iio_channel_disable(tx0_q);
-    }
+    adalm_disable_tx();
+    adalm_disable_rx();
 
-    fprintf(stderr, "* Destroying context\n");
     if (ctx)
     {
         iio_context_destroy(ctx);
@@ -57,22 +48,53 @@ void adalm_shutdown()
 
 void adalm_enable_tx()
 {
-    tx0_i = iio_device_find_channel(tx, "voltage0", true);
-    tx0_q = iio_device_find_channel(tx, "voltage1", true);
-    iio_channel_enable(tx0_i);
-    iio_channel_enable(tx0_q);
+    if (tx0_i)
+    {
+        iio_channel_enable(tx0_i);
+    }
+    if (tx0_q)
+    {
+        iio_channel_enable(tx0_q);
+    }
+}
+
+void adalm_disable_tx()
+{
+    if (tx0_i)
+    {
+        iio_channel_disable(tx0_i);
+    }
+    if (tx0_q)
+    {
+        iio_channel_disable(tx0_q);
+    }
+}
+
+void adalm_enable_rx()
+{
+    if (rx0_i)
+    {
+        iio_channel_disable(rx0_i);
+    }
+    if (rx0_q)
+    {
+        iio_channel_disable(rx0_q);
+    }
 }
 
 void adalm_disable_rx()
 {
-    struct iio_channel *rx0_i, *rx0_q;
-    rx0_i = iio_device_find_channel(rx, "voltage0", false);
-    rx0_q = iio_device_find_channel(rx, "voltage1", false);
-    iio_channel_disable(rx0_i);
-    iio_channel_disable(rx0_q);
+    if (rx0_i)
+    {
+        iio_channel_enable(rx0_i);
+    }
+    if (rx0_q)
+    {
+        iio_channel_enable(rx0_q);
+    }
 }
 
-void adalm_init(char *uri, long samp_rate, long tx_freq)
+void adalm_init(char *uri, long samp_rate, long tx_freq, int buf_len)
 {
     ctx = iio_create_context_from_uri(uri);
     phy = iio_context_find_device(ctx, DEV_NAME);
@@ -89,19 +111,26 @@ void adalm_init(char *uri, long samp_rate, long tx_freq)
     tx = iio_context_find_device(ctx, TX_DEV_NAME);
     rx = iio_context_find_device(ctx, RX_DEV_NAME);
 
+    tx0_i = iio_device_find_channel(tx, "voltage0", true);
+    tx0_q = iio_device_find_channel(tx, "voltage1", true);
+    
+    rx0_i = iio_device_find_channel(rx, "voltage0", false);
+    rx0_q = iio_device_find_channel(rx, "voltage1", false);
+
     adalm_disable_rx();
     adalm_enable_tx();
+
+    txbuf = iio_device_create_buffer(tx, buf_len, false);
+    if (!txbuf)
+    {
+        perror("Error: Could not create TX buffer");
+        shutdown(1);
+    }
+
 }
 
 void adalm_transmit(complex *iq, int iq_len)
 {
-    txbuf = iio_device_create_buffer(tx, iq_len, false);
-    if (!txbuf)
-    {
-        perror("Could not create TX buffer");
-        shutdown(1);
-    }
-
     ssize_t nbytes_tx;
     char *p_dat, *p_end;
     ptrdiff_t p_inc;

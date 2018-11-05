@@ -48,8 +48,10 @@ enum rate
 };
 
 void adalm_enable_tx();
+void adalm_disable_tx();
+void adalm_enable_rx();
 void adalm_disable_rx();
-void adalm_init(char *uri, long samp_rate, long tx_frew);
+void adalm_init(char *uri, long samp_rate, long tx_freq, int buf_len);
 void adalm_transmit(complex *iq, int iq_len);
 void adalm_shutdown();
 

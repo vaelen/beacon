@@ -90,28 +90,27 @@ void transmit(struct beacon_config config)
         break;
     }
 
-    fprintf(stderr, "Writing IQ Data - Device: %s, Sampling Rate: %ld ", device_name, config.samp_rate);
+    fprintf(stderr, "Writing IQ Data - Device: %s, Sampling Rate: %ld\n", device_name, config.samp_rate);
     while (!stop)
     {
         start = generate_signal(config.tone_freq, config.amplitude, config.samp_rate, iq, IQ_BUFFER_SIZE, start);
         samples_written = write_iq_to_device(config.device, iq, IQ_BUFFER_SIZE);
         if (samples_written == 0)
         {
-            fprintf(stderr, "!");
+            fprintf(stderr, "Couldn't Write Samples.\n");
         }
         else
         {
-            fprintf(stderr, ".");
+            fprintf(stderr, "Wrote %ld Samples (%ld Total).\n", samples_written, samples);
         }
         samples += samples_written;
     }
-    fprintf(stderr, " Wrote %ld Samples.\n", samples);
 }
 
 void init(struct beacon_config config)
 {
 #ifdef ADALM_SUPPORT
-    adalm_init("ip:192.168.2.1", config.samp_rate, config.tx_freq);
+    adalm_init("ip:192.168.2.1", config.samp_rate, config.tx_freq, IQ_BUFFER_SIZE);
 #endif
 }
 
