@@ -1,4 +1,4 @@
-Adalm-Beacon
+Beacon
 ------------
 
 Copyright 2018, Andrew C. Young <andrew@vaelen.org>
