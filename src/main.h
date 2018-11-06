@@ -25,6 +25,7 @@
 #include "global.h"
 
 #include "iq.h"
+#include "cw.h"
 
 #ifdef ADALM_SUPPORT
 #include "adalm.h"
@@ -49,11 +50,13 @@ struct beacon_config
     long samp_rate;
     long tx_freq;
     double amplitude;
+    long carrier_freq;
     long tone_freq;
 };
 
 const double DEFAULT_AMPLITUDE = 10.0;
 const long DEFAULT_TONE_FREQ = 600;
+const long DEFAULT_CARRIER_FREQ = 0;
 
 struct beacon_config parse_config(int argc, char **argv);
 void init(struct beacon_config config);

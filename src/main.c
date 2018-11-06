@@ -34,6 +34,7 @@ struct beacon_config parse_config(int argc, char **argv)
     config.tx_freq = FREQ_S;
     config.amplitude = DEFAULT_AMPLITUDE;
     config.tone_freq = DEFAULT_TONE_FREQ;
+    config.carrier_freq = DEFAULT_CARRIER_FREQ;
 
     /*
     char *cvalue = NULL;
@@ -77,7 +78,8 @@ void transmit(struct beacon_config config)
 {
     complex iq[IQ_BUFFER_SIZE];
     double start = 0;
-    long samples = 0, samples_written = 0;
+    long samples = 0;
+    int cw_start = 0;
 
     char *device_name;
     switch (config.device)
@@ -90,20 +92,23 @@ void transmit(struct beacon_config config)
         break;
     }
 
+    char cw_pattern[IQ_BUFFER_SIZE];
+    int cw_pattern_length = generate_cw_pattern(cw_pattern, IQ_BUFFER_SIZE, "CQ CQ CQ");
+
     fprintf(stderr, "Writing IQ Data - Device: %s, Sampling Rate: %ld\n", device_name, config.samp_rate);
     while (!stop)
     {
-        start = generate_signal(config.tone_freq, config.amplitude, config.samp_rate, iq, IQ_BUFFER_SIZE, start);
-        samples_written = write_iq_to_device(config.device, iq, IQ_BUFFER_SIZE);
-        if (samples_written == 0)
+        start = generate_signal(config.carrier_freq, config.amplitude, config.samp_rate, iq, IQ_BUFFER_SIZE, start);
+        cw_start = apply_cw(iq, IQ_BUFFER_SIZE, 10, cw_pattern, cw_pattern_length, cw_start);
+        samples = write_iq_to_device(config.device, iq, IQ_BUFFER_SIZE);
+        if (samples == 0)
         {
             fprintf(stderr, "Couldn't Write Samples.\n");
         }
         else
         {
-            fprintf(stderr, "Wrote %ld Samples (%ld Total).\n", samples_written, samples);
+            fprintf(stderr, "Wrote %ld Samples.\n", samples);
         }
-        samples += samples_written;
     }
 }
 

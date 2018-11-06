@@ -18,20 +18,21 @@
 
 */
 
-/* File iq.h */
-#ifndef FILE_IQ_H_SEEN
-#define FILE_IQ_H_SEEN
+/* File cw.h */
+#ifndef FILE_CW_H_SEEN
+#define FILE_CW_H_SEEN
 
 #include "../config.h"
 
-#include <assert.h>
-#include <stdio.h>
-#include <math.h>
+#include <stdbool.h>
 #include <complex.h>
+#include <ctype.h>
+#include <string.h>
 
-#define PI 3.14159265
+/** Converts the given message into a pattern and stores it in the provided pattern array.  Returns the number of values stored in the pattern array. */
+int generate_cw_pattern(char *pattern, int buffer_len, const char *message);
 
-double generate_signal(long freq, double amplitude, long samp_rate, complex *iq, int iq_len, double start);
-void write_iq(FILE *out, complex *iq, int iq_len);
+/** Modulate the provided tone IQ data with the given CW message. */
+int apply_cw(complex *iq, int iq_len, int dit_freq, char *pattern, int pattern_len, int start);
 
-#endif /* !FILE_IQ_H_SEEN */
+#endif /* !FILE_CW_H_SEEN */
