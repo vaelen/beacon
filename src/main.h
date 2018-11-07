@@ -54,7 +54,7 @@ struct beacon_config
     long tone_freq;
 };
 
-const double DEFAULT_AMPLITUDE = 10.0;
+const double DEFAULT_AMPLITUDE = 100.0;
 const long DEFAULT_TONE_FREQ = 600;
 const long DEFAULT_CARRIER_FREQ = 0;
 

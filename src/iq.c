@@ -44,11 +44,11 @@ double generate_signal(long freq, double amplitude, long samp_rate, complex *iq,
         q = amplitude * cos(theta);
 
 #ifdef DEBUG
-        fprintf(stderr, "freq: %d, amplitude: %f, samp_rate: %d, index: %d, rate: %f, step: %f, end: %f, theta: %f, i: %f, q: %f\n", freq, amplitude, samp_rate, index, rate, step, end, theta, i, q);
+        fprintf(stderr, "freq: %ld, amplitude: %f, samp_rate: %ld, index: %d, rate: %f, step: %f, end: %f, theta: %f, i: %f, q: %f\n", freq, amplitude, samp_rate, index, rate, step, end, theta, i, q);
 #endif
 
         iq[index] = q + i * I;
-
+        
         theta += step;
     }
     return theta;

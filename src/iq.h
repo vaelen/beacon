@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <complex.h>
+#include <stdint.h>
 
 #define PI 3.14159265
 

@@ -21,6 +21,7 @@
 #include "main.h"
 
 const int IQ_BUFFER_SIZE = 4096;
+const long IQ_SAMP_RATE = 32000;
 
 struct beacon_config parse_config(int argc, char **argv)
 {
@@ -30,7 +31,7 @@ struct beacon_config parse_config(int argc, char **argv)
 #else
     config.device = DEVICE_FILE;
 #endif
-    config.samp_rate = RATE_520K;
+    config.samp_rate = RATE_2M;
     config.tx_freq = FREQ_S;
     config.amplitude = DEFAULT_AMPLITUDE;
     config.tone_freq = DEFAULT_TONE_FREQ;
@@ -98,17 +99,19 @@ void transmit(struct beacon_config config)
     fprintf(stderr, "Writing IQ Data - Device: %s, Sampling Rate: %ld\n", device_name, config.samp_rate);
     while (!stop)
     {
-        start = generate_signal(config.carrier_freq, config.amplitude, config.samp_rate, iq, IQ_BUFFER_SIZE, start);
+        start = generate_signal(config.tone_freq, config.amplitude, config.samp_rate, iq, IQ_BUFFER_SIZE, start);
         cw_start = apply_cw(iq, IQ_BUFFER_SIZE, 10, cw_pattern, cw_pattern_length, cw_start);
         samples = write_iq_to_device(config.device, iq, IQ_BUFFER_SIZE);
         if (samples == 0)
         {
             fprintf(stderr, "Couldn't Write Samples.\n");
         }
+        /*
         else
         {
             fprintf(stderr, "Wrote %ld Samples.\n", samples);
         }
+        */
     }
 }
 

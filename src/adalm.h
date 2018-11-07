@@ -33,20 +33,6 @@
 #include <iio.h>
 #include <ad9361.h>
 
-enum frequency
-{
-    FREQ_S = 1294500000,
-    FREQ_U = 432320000,
-};
-
-// https://ez.analog.com/university-program/f/q-a/77879/adalm-pluto-sample-rate
-enum rate
-{
-    RATE_520K = 520000,
-    RATE_1M = 1000000,
-    RATE_5M = 5000000,
-};
-
 void adalm_enable_tx();
 void adalm_disable_tx();
 void adalm_enable_rx();
