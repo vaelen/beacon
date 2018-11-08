@@ -57,6 +57,7 @@ struct beacon_config
     const char *message;
     long iq_len;
     int padding;
+    double gain;
 };
 
 const double DEFAULT_CARRIER_AMPLITUDE = 100.0;
@@ -66,6 +67,7 @@ const long DEFAULT_CARRIER_FREQ = 10000;
 const int DEFAULT_WPM = 15;
 const long DEFAULT_IQ_LEN = 65536;
 const int DEFAULT_PADDING = 10;
+const double DEFAULT_GAIN = 50;
 
 struct beacon_config parse_config(int argc, char **argv);
 void init(struct beacon_config config);

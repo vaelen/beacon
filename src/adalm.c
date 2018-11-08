@@ -94,16 +94,28 @@ void adalm_disable_rx()
     }
 }
 
-void adalm_init(char *uri, long samp_rate, long tx_freq, int buf_len)
+void adalm_init(char *uri, double samp_rate, long gain, long tx_freq, int buf_len)
 {
     ctx = iio_create_context_from_uri(uri);
     phy = iio_context_find_device(ctx, DEV_NAME);
 
     // Set frequency
     iio_channel_attr_write_longlong(
-        iio_device_find_channel(phy, "altvoltage1", true),
-        "frequency",
-        tx_freq);
+        iio_device_find_channel(phy, "altvoltage1", true), "frequency", tx_freq);
+
+    // Set gain
+    double attenuation = gain - 89.75;
+    if (attenuation > 0)
+    {
+        attenuation = 0;
+    }
+    else if (attenuation < -89.75)
+    {
+        attenuation = -89.75;
+    }
+
+    //iio_channel_attr_write(iio_device_find_channel(phy, "voltage0", true), "gain_control_mode", "manual");
+    iio_channel_attr_write_longlong(iio_device_find_channel(phy, "voltage0", true), "hardwaregain", attenuation);
 
     // Set baseband sampling rate
     ad9361_set_bb_rate(phy, samp_rate);

@@ -41,6 +41,7 @@ struct beacon_config parse_config(int argc, char **argv)
     config.message = "";
     config.iq_len = DEFAULT_IQ_LEN;
     config.padding = DEFAULT_PADDING;
+    config.gain = DEFAULT_GAIN;
 
     bool help_flag = false;
 
@@ -51,12 +52,13 @@ struct beacon_config parse_config(int argc, char **argv)
                 {"sampling-rate", required_argument, 0, 's'},
                 {"frequency", required_argument, 0, 'f'},
                 {"carrier-offset", required_argument, 0, 'c'},
-                {"carrier-gain", required_argument, 0, 'g'},
+                {"carrier-amplitude", required_argument, 0, 'a'},
                 {"tone", required_argument, 0, 't'},
-                {"tone-gain", required_argument, 0, 'G'},
+                {"tone-amplitude", required_argument, 0, 'A'},
                 {"wpm", required_argument, 0, 'w'},
                 {"padding", required_argument, 0, 'p'},
                 {"buffer-length", required_argument, 0, 'b'},
+                {"gain", required_argument, 0, 'g'},
                 {"uhf", no_argument, 0, 'u'},
                 {"sband", no_argument, 0, 's'},
                 {"stdout", no_argument, 0, 'o'},
@@ -67,7 +69,7 @@ struct beacon_config parse_config(int argc, char **argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        int c = getopt_long(argc, argv, "s:f:o:g:t:G:w:p:b:",
+        int c = getopt_long(argc, argv, "s:f:c:a:t:A:w:p:b:g:usohv",
                             long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -98,7 +100,7 @@ struct beacon_config parse_config(int argc, char **argv)
             config.carrier_freq = atol(optarg);
             break;
 
-        case 'g':
+        case 'a':
             config.carrier_amplitude = atof(optarg);
             break;
 
@@ -106,7 +108,7 @@ struct beacon_config parse_config(int argc, char **argv)
             config.tone_freq = atol(optarg);
             break;
 
-        case 'G':
+        case 'A':
             config.tone_amplitude = atof(optarg);
             break;
 
@@ -120,6 +122,10 @@ struct beacon_config parse_config(int argc, char **argv)
 
         case 'b':
             config.iq_len = atol(optarg);
+            break;
+
+        case 'g':
+            config.gain = atof(optarg);
             break;
 
         case 'o':
@@ -166,13 +172,14 @@ struct beacon_config parse_config(int argc, char **argv)
         fprintf(stderr, "-w, --wpm\tsets the cw (morse code) speed in words per minute (default: %d WPM)\n", DEFAULT_WPM);
         fprintf(stderr, "-p, --padding\t sets the amount of time to pause between transmissions (default: %d)\n", DEFAULT_PADDING);
         fprintf(stderr, "Hardware Options:\n");
+        fprintf(stderr, "-g, --gain\tsets the hardware gain (0 to 90, default: %0.3f)\n", DEFAULT_GAIN);
         fprintf(stderr, "-s, --sampling_rate\tsets the sampling rate of the device (default: %d)\n", RATE_2M);
         fprintf(stderr, "-f, --frequency\tsets the transmission frequency in MHz (default: %0.3f MHz)\n", FREQ_S / M);
         fprintf(stderr, "-o, --stdout\twrite IQ data to STDOUT\n");
         fprintf(stderr, "Advanced Options:\n");
         fprintf(stderr, "-c, --carrier-offset\tsets the carrier offset frequency in Hz (default: %ld Hz)\n", DEFAULT_CARRIER_FREQ);
-        fprintf(stderr, "-g, --carrier-gain\tsets the carrier gain (default: %f)\n", DEFAULT_CARRIER_AMPLITUDE);
-        fprintf(stderr, "-G, --tone-gain\tsets the tone gain (default: %f)\n", DEFAULT_TONE_AMPLITUDE);
+        fprintf(stderr, "-a, --carrier-amplitude\tsets the carrier amplitude (default: %0.3f)\n", DEFAULT_CARRIER_AMPLITUDE);
+        fprintf(stderr, "-A, --tone-amplitude\tsets the tone amplitude (default: %0.3f)\n", DEFAULT_TONE_AMPLITUDE);
         fprintf(stderr, "-b, --buffer-length\t (default: %ld)\n", DEFAULT_IQ_LEN);
         fprintf(stderr, "-v, --version\tprints the name and version of this program\n");
         fprintf(stderr, "-h, --helps\tprints this message\n");
@@ -208,8 +215,8 @@ void transmit(struct beacon_config config)
 
     long dit_len = calc_dit_len(config.samp_rate, config.wpm);
     fprintf(stderr,
-            "Device: %s, Sampling Rate: %0.3f Ms/s, Frequency: %0.3f MHz, Carrier: %0.3f KHz, Tone: %ld Hz, WPM: %d, Samples Per Dit: %ld, Padding: %d, Message: %s\n",
-            device_name, config.samp_rate / M, config.tx_freq / M, config.carrier_freq / K, config.tone_freq, config.wpm, dit_len, config.padding, config.message);
+            "Device: %s, Sampling Rate: %0.3f Ms/s, Gain: %0.3f, Frequency: %0.3f MHz, Carrier: %0.3f KHz, Tone: %ld Hz, WPM: %d, Samples Per Dit: %ld, Padding: %d, Message: %s\n",
+            device_name, config.samp_rate / M, config.gain, config.tx_freq / M, config.carrier_freq / K, config.tone_freq, config.wpm, dit_len, config.padding, config.message);
 
     complex carrier[config.iq_len], tone[config.iq_len];
     double carrier_start = 0, tone_start = 0;
@@ -251,7 +258,7 @@ void transmit(struct beacon_config config)
 void init(struct beacon_config config)
 {
 #ifdef ADALM_SUPPORT
-    adalm_init("ip:192.168.2.1", config.samp_rate, config.tx_freq, config.iq_len);
+    adalm_init("ip:192.168.2.1", config.samp_rate, config.gain, config.tx_freq, config.iq_len);
 #endif
 }
 
