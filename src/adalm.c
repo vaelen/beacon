@@ -113,7 +113,7 @@ void adalm_init(char *uri, long samp_rate, long tx_freq, int buf_len)
 
     tx0_i = iio_device_find_channel(tx, "voltage0", true);
     tx0_q = iio_device_find_channel(tx, "voltage1", true);
-    
+
     rx0_i = iio_device_find_channel(rx, "voltage0", false);
     rx0_q = iio_device_find_channel(rx, "voltage1", false);
 
@@ -126,7 +126,6 @@ void adalm_init(char *uri, long samp_rate, long tx_freq, int buf_len)
         perror("Error: Could not create TX buffer");
         shutdown(1);
     }
-
 }
 
 void adalm_transmit(complex *iq, int iq_len)

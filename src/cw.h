@@ -29,10 +29,20 @@
 #include <ctype.h>
 #include <string.h>
 
-/** Converts the given message into a pattern and stores it in the provided pattern array.  Returns the number of values stored in the pattern array. */
-int generate_cw_pattern(char *pattern, int buffer_len, const char *message);
+struct cw_state
+{
+    int element;
+    bool value;
+    long samples_left;
+};
 
-/** Modulate the provided tone IQ data with the given CW message. */
-int apply_cw(complex *iq, int iq_len, int dit_freq, char *pattern, int pattern_len, int start);
+/** Converts the given message into a pattern and stores it in the provided pattern array.  Returns the number of values stored in the pattern array. */
+int generate_cw_pattern(bool *pattern, int buffer_len, const char *message, int final_padding_spaces);
+
+/** Calculate the number of samples per dit. */
+long calc_dit_len(long samp_rate, int wpm);
+
+/** Modulate a CW signal on to the provided tone IQ data with the given CW message. */
+struct cw_state modulate_cw(complex *iq, int iq_len, int dit_len, bool *pattern, int pattern_len, struct cw_state state);
 
 #endif /* !FILE_CW_H_SEEN */

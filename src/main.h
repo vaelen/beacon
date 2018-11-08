@@ -33,7 +33,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <getopt.h>
 #include <stdbool.h>
 #include <signal.h>
 #include <ctype.h>
@@ -49,14 +49,23 @@ struct beacon_config
     enum device device;
     long samp_rate;
     long tx_freq;
-    double amplitude;
     long carrier_freq;
+    double carrier_amplitude;
     long tone_freq;
+    double tone_amplitude;
+    int wpm;
+    const char *message;
+    long iq_len;
+    int padding;
 };
 
-const double DEFAULT_AMPLITUDE = 100.0;
-const long DEFAULT_TONE_FREQ = 600;
-const long DEFAULT_CARRIER_FREQ = 0;
+const double DEFAULT_CARRIER_AMPLITUDE = 100.0;
+const double DEFAULT_TONE_AMPLITUDE = 10.0;
+const long DEFAULT_TONE_FREQ = 500;
+const long DEFAULT_CARRIER_FREQ = 10000;
+const int DEFAULT_WPM = 15;
+const long DEFAULT_IQ_LEN = 65536;
+const int DEFAULT_PADDING = 10;
 
 struct beacon_config parse_config(int argc, char **argv);
 void init(struct beacon_config config);

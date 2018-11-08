@@ -20,6 +20,8 @@
 
 #include "iq.h"
 
+//#define DEBUG
+
 double generate_signal(long freq, double amplitude, long samp_rate, complex *iq, int iq_len, double start)
 {
 
@@ -40,18 +42,31 @@ double generate_signal(long freq, double amplitude, long samp_rate, complex *iq,
             theta = 0;
         }
 
-        i = amplitude * sin(theta);
-        q = amplitude * cos(theta);
+        i = amplitude * cos(theta);
+        q = amplitude * sin(theta);
 
 #ifdef DEBUG
         fprintf(stderr, "freq: %ld, amplitude: %f, samp_rate: %ld, index: %d, rate: %f, step: %f, end: %f, theta: %f, i: %f, q: %f\n", freq, amplitude, samp_rate, index, rate, step, end, theta, i, q);
 #endif
 
         iq[index] = q + i * I;
-        
+
         theta += step;
     }
     return theta;
+}
+
+void modulate_am(complex *carrier, complex *baseband, int iq_len)
+{
+    for (int index = 0; index < iq_len; index++)
+    {
+        double carrier_i = cimag(carrier[index]);
+        double baseband_i = cimag(baseband[index]);
+
+        complex modulated = 0 + (carrier_i * baseband_i) * I;
+
+        carrier[index] = carrier[index] + modulated;
+    }
 }
 
 void write_iq(FILE *out, complex *iq, int iq_len)

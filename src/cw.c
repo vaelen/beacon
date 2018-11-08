@@ -21,9 +21,11 @@
 #include "cw.h"
 
 const char *cw = "A.-B-...C-.-.D-..E.F..-.G--.H....I..J.---K-.-L.-..M--N-.O---P.--.Q--.-R.-.S...T-U..-V...-W.--X-..-Y-.--Z--..1.----2..---3...--4....-5.....6-....7--...8---..9----.0----- _";
+// Dits per word, based on "PARIS ".
+const int DITS_PER_WORD = 50;
 
 /** Converts the given message into a pattern and stores it in the provided pattern array.  Returns the number of values stored in the pattern array. */
-int generate_cw_pattern(char *pattern, int buffer_len, const char *message)
+int generate_cw_pattern(bool *pattern, int buffer_len, const char *message, int final_padding_spaces)
 {
     int pos = 0;
     int message_len = strlen(message);
@@ -46,7 +48,7 @@ int generate_cw_pattern(char *pattern, int buffer_len, const char *message)
                     }
                     else
                     {
-                        pattern[pos++] = 1;
+                        pattern[pos++] = true;
                     }
                     break;
                 case '-':
@@ -57,9 +59,9 @@ int generate_cw_pattern(char *pattern, int buffer_len, const char *message)
                     }
                     else
                     {
-                        pattern[pos++] = 1;
-                        pattern[pos++] = 1;
-                        pattern[pos++] = 1;
+                        pattern[pos++] = true;
+                        pattern[pos++] = true;
+                        pattern[pos++] = true;
                     }
                     break;
                 case '_':
@@ -71,10 +73,10 @@ int generate_cw_pattern(char *pattern, int buffer_len, const char *message)
                     }
                     else
                     {
-                        pattern[pos++] = 0;
-                        pattern[pos++] = 0;
-                        pattern[pos++] = 0;
-                        pattern[pos++] = 0;
+                        pattern[pos++] = false;
+                        pattern[pos++] = false;
+                        pattern[pos++] = false;
+                        pattern[pos++] = false;
                     }
                     break;
                 default:
@@ -88,7 +90,7 @@ int generate_cw_pattern(char *pattern, int buffer_len, const char *message)
                 }
                 else
                 {
-                    pattern[pos++] = 0;
+                    pattern[pos++] = false;
                 }
             }
             // off for 3 time slots between letters
@@ -99,16 +101,48 @@ int generate_cw_pattern(char *pattern, int buffer_len, const char *message)
             }
             else
             {
-                pattern[pos++] = 0;
-                pattern[pos++] = 0;
+                pattern[pos++] = false;
+                pattern[pos++] = false;
             }
         }
+    }
+    // off for 7 time slots between words
+    int padding = 7 * final_padding_spaces;
+    while (buffer_len - pos > 0 && padding > 0)
+    {
+        pattern[pos++] = false;
+        padding--;
     }
     return pos;
 }
 
-/** Modulate the provided tone IQ data with the given CW message. */
-int apply_cw(complex *iq, int iq_len, int samples_per_dit, char *pattern, int pattern_len, int start)
+long calc_dit_len(long samp_rate, int wpm)
 {
-    return start;
+    long dits_per_sec = wpm * DITS_PER_WORD / 60;
+    long samples_per_dit = samp_rate / dits_per_sec;
+    return samples_per_dit;
+}
+
+struct cw_state modulate_cw(complex *iq, int iq_len, int dit_len, bool *pattern, int pattern_len, struct cw_state state)
+{
+    for (int index = 0; index < iq_len; index++)
+    {
+        double i = cimag(iq[index]);
+
+        if (state.samples_left < 1 && i > -0.000001 && i < 0.00001)
+        {
+            // Move to next element when i is 0
+            state.value = pattern[state.element];
+            state.samples_left = dit_len;
+            state.element = (state.element + 1) % pattern_len;
+        }
+
+        state.samples_left--;
+
+        if (!state.value)
+        {
+            iq[index] = 0 + 1 * I;
+        }
+    }
+    return state;
 }

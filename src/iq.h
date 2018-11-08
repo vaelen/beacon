@@ -32,7 +32,13 @@
 
 #define PI 3.14159265
 
+/** Generate a carrier signal at the given frequency */
 double generate_signal(long freq, double amplitude, long samp_rate, complex *iq, int iq_len, double start);
+
+/** Module a baseband signal onto a carrier signal using amplitude modulation, overwriting the carrier IQ data. */
+void modulate_am(complex *carrier, complex *baseband, int iq_len);
+
+/** Write the given IQ data to a file. */
 void write_iq(FILE *out, complex *iq, int iq_len);
 
 #endif /* !FILE_IQ_H_SEEN */
