@@ -47,6 +47,7 @@ enum device
 struct beacon_config
 {
     enum device device;
+    const char *uri;
     long samp_rate;
     long tx_freq;
     long carrier_freq;
@@ -60,6 +61,7 @@ struct beacon_config
     double gain;
 };
 
+const char *DEFAULT_URI = "ip:192.168.2.1";
 const double DEFAULT_CARRIER_AMPLITUDE = 100.0;
 const double DEFAULT_TONE_AMPLITUDE = 10.0;
 const long DEFAULT_TONE_FREQ = 500;

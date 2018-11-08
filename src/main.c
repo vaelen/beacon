@@ -31,6 +31,7 @@ struct beacon_config parse_config(int argc, char **argv)
 #else
     config.device = DEVICE_FILE;
 #endif
+    config.uri = DEFAULT_URI;
     config.samp_rate = RATE_2M;
     config.tx_freq = FREQ_S;
     config.carrier_freq = DEFAULT_CARRIER_FREQ;
@@ -49,6 +50,7 @@ struct beacon_config parse_config(int argc, char **argv)
     {
         static struct option long_options[] =
             {
+                {"uri", required_argument, 0, 'u'},
                 {"sampling-rate", required_argument, 0, 's'},
                 {"frequency", required_argument, 0, 'f'},
                 {"carrier-offset", required_argument, 0, 'c'},
@@ -59,8 +61,8 @@ struct beacon_config parse_config(int argc, char **argv)
                 {"padding", required_argument, 0, 'p'},
                 {"buffer-length", required_argument, 0, 'b'},
                 {"gain", required_argument, 0, 'g'},
-                {"uhf", no_argument, 0, 'u'},
-                {"sband", no_argument, 0, 's'},
+                {"uhf", no_argument, 0, 'U'},
+                {"sband", no_argument, 0, 'S'},
                 {"stdout", no_argument, 0, 'o'},
                 {"help", no_argument, 0, 'h'},
                 {"version", no_argument, 0, 'v'},
@@ -69,7 +71,7 @@ struct beacon_config parse_config(int argc, char **argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        int c = getopt_long(argc, argv, "s:f:c:a:t:A:w:p:b:g:usohv",
+        int c = getopt_long(argc, argv, "u:s:f:c:a:t:A:w:p:b:g:USohv",
                             long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -86,6 +88,10 @@ struct beacon_config parse_config(int argc, char **argv)
             if (optarg)
                 printf(" with arg %s", optarg);
             printf("\n");
+            break;
+
+        case 'u':
+            config.uri = optarg;
             break;
 
         case 's':
@@ -132,7 +138,7 @@ struct beacon_config parse_config(int argc, char **argv)
             config.device = DEVICE_FILE;
             break;
 
-        case 'u':
+        case 'U':
             config.tx_freq = FREQ_U;
             break;
 
@@ -172,6 +178,7 @@ struct beacon_config parse_config(int argc, char **argv)
         fprintf(stderr, "-w, --wpm\tsets the cw (morse code) speed in words per minute (default: %d WPM)\n", DEFAULT_WPM);
         fprintf(stderr, "-p, --padding\t sets the amount of time to pause between transmissions (default: %d)\n", DEFAULT_PADDING);
         fprintf(stderr, "Hardware Options:\n");
+        fprintf(stderr, "-u, --uri\thardware URI (default: %s)\n", DEFAULT_URI);
         fprintf(stderr, "-g, --gain\tsets the hardware gain (0 to 90, default: %0.3f)\n", DEFAULT_GAIN);
         fprintf(stderr, "-s, --sampling_rate\tsets the sampling rate of the device (default: %d)\n", RATE_2M);
         fprintf(stderr, "-f, --frequency\tsets the transmission frequency in MHz (default: %0.3f MHz)\n", FREQ_S / M);
@@ -258,7 +265,7 @@ void transmit(struct beacon_config config)
 void init(struct beacon_config config)
 {
 #ifdef ADALM_SUPPORT
-    adalm_init("ip:192.168.2.1", config.samp_rate, config.gain, config.tx_freq, config.iq_len);
+    adalm_init(config.uri, config.samp_rate, config.gain, config.tx_freq, config.iq_len);
 #endif
 }
 

@@ -94,7 +94,7 @@ void adalm_disable_rx()
     }
 }
 
-void adalm_init(char *uri, double samp_rate, long gain, long tx_freq, int buf_len)
+void adalm_init(const char *uri, double samp_rate, long gain, long tx_freq, int buf_len)
 {
     ctx = iio_create_context_from_uri(uri);
     phy = iio_context_find_device(ctx, DEV_NAME);
