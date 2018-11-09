@@ -36,7 +36,7 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <signal.h>
-#include <ctype.h>
+#include <libgen.h>
 
 enum device
 {
@@ -72,6 +72,8 @@ const long DEFAULT_IQ_LEN = 65536;
 const int DEFAULT_PADDING = 10;
 const double DEFAULT_GAIN = 50;
 
+void print_version(FILE *out);
+void print_help(FILE *out, const char *executable_name);
 struct beacon_config parse_config(int argc, char **argv);
 void init(struct beacon_config config);
 void main(int argc, char **argv);

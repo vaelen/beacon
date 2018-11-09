@@ -23,6 +23,51 @@
 const double M = 1000000;
 const double K = 1000;
 
+void print_version(FILE *out)
+{
+    fprintf(out, "%s\n", PACKAGE_STRING);
+    fprintf(out, "Copyright (C) 2018 Andrew C. Young (NU8W)\n");
+    fprintf(out, "\n");
+    fprintf(out, "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n");
+    fprintf(out, "This is free software: you are free to change and redistribute it.\n");
+    fprintf(out, "There is NO WARRANTY, to the extent permitted by law.\n");
+    fprintf(out, "\n");
+    fprintf(out, "Homepage: <%s>\n", PACKAGE_URL);
+}
+
+void print_help(FILE *out, const char *executable_name)
+{
+    // Print help
+    fprintf(out, "%s\n", PACKAGE_STRING);
+    fprintf(out, "Usage: %s [options] <message>\n", executable_name);
+    fprintf(out, "Broadcasts a CW (morse code) beacon.\n");
+    fprintf(out, "\n");
+    fprintf(out, "Common Options:\n");
+    fprintf(out, "-U, --uhf\ttransmit using default UHF frequency of %0.3f MHz\n", FREQ_U / M);
+    fprintf(out, "-S, --sband\ttransmit using default S-Band frequency %0.3f MHz (default)\n", FREQ_S / M);
+    fprintf(out, "CW (morse code) Options:\n");
+    fprintf(out, "-t, --tone\tsets the tone frequency in Hz (default: %ld Hz)\n", DEFAULT_TONE_FREQ);
+    fprintf(out, "-w, --wpm\tsets the cw (morse code) speed in words per minute (default: %d WPM)\n", DEFAULT_WPM);
+    fprintf(out, "-p, --padding\t sets the amount of time to pause between transmissions (default: %d)\n", DEFAULT_PADDING);
+    fprintf(out, "Hardware Options:\n");
+    fprintf(out, "-u, --uri\thardware URI (default: %s)\n", DEFAULT_URI);
+    fprintf(out, "-l, --local\tsets the hardware URI to %s (use this when running locally on the SDR).\n", LOCAL_URI);
+    fprintf(out, "-g, --gain\tsets the hardware gain (0 to 90, default: %0.3f)\n", DEFAULT_GAIN);
+    fprintf(out, "-s, --sampling_rate\tsets the sampling rate of the device (default: %d)\n", RATE_2M);
+    fprintf(out, "-f, --frequency\tsets the transmission frequency in MHz (default: %0.3f MHz)\n", FREQ_S / M);
+    fprintf(out, "-o, --stdout\twrite IQ data to STDOUT\n");
+    fprintf(out, "Advanced Options:\n");
+    fprintf(out, "-c, --carrier-offset\tsets the carrier offset frequency in Hz (default: %ld Hz)\n", DEFAULT_CARRIER_FREQ);
+    fprintf(out, "-a, --carrier-amplitude\tsets the carrier amplitude (default: %0.3f)\n", DEFAULT_CARRIER_AMPLITUDE);
+    fprintf(out, "-A, --tone-amplitude\tsets the tone amplitude (default: %0.3f)\n", DEFAULT_TONE_AMPLITUDE);
+    fprintf(out, "-b, --buffer-length\t (default: %ld)\n", DEFAULT_IQ_LEN);
+    fprintf(out, "-v, --version\tprints version, copyright, and contact information\n");
+    fprintf(out, "-h, --helps\tprints this message\n");
+    fprintf(out, "\n");
+    fprintf(out, "Copyright (C) 2018 Andrew C. Young (NU8W)\n");
+    fprintf(out, "Homepage: <%s>\n", PACKAGE_URL);
+}
+
 struct beacon_config parse_config(int argc, char **argv)
 {
     struct beacon_config config;
@@ -156,7 +201,7 @@ struct beacon_config parse_config(int argc, char **argv)
             break;
 
         case 'v':
-            fprintf(stderr, "%s\n", PACKAGE_STRING);
+            print_version(stderr);
             exit(1);
             break;
 
@@ -171,31 +216,7 @@ struct beacon_config parse_config(int argc, char **argv)
 
     if (help_flag || optind >= argc)
     {
-        // Print help
-        fprintf(stderr, "Usage: %s [options] <message>\n", argv[0]);
-        fprintf(stderr, "Broadcasts a CW (morse code) beacon.\n");
-        fprintf(stderr, "\n");
-        fprintf(stderr, "Common Options:\n");
-        fprintf(stderr, "-U, --uhf\ttransmit using default UHF frequency of %0.3f MHz\n", FREQ_U / M);
-        fprintf(stderr, "-S, --sband\ttransmit using default S-Band frequency %0.3f MHz (default)\n", FREQ_S / M);
-        fprintf(stderr, "CW (morse code) Options:\n");
-        fprintf(stderr, "-t, --tone\tsets the tone frequency in Hz (default: %ld Hz)\n", DEFAULT_TONE_FREQ);
-        fprintf(stderr, "-w, --wpm\tsets the cw (morse code) speed in words per minute (default: %d WPM)\n", DEFAULT_WPM);
-        fprintf(stderr, "-p, --padding\t sets the amount of time to pause between transmissions (default: %d)\n", DEFAULT_PADDING);
-        fprintf(stderr, "Hardware Options:\n");
-        fprintf(stderr, "-u, --uri\thardware URI (default: %s)\n", DEFAULT_URI);
-        fprintf(stderr, "-l, --local\tsets the hardware URI to %s (use this when running locally on the SDR).\n", LOCAL_URI);
-        fprintf(stderr, "-g, --gain\tsets the hardware gain (0 to 90, default: %0.3f)\n", DEFAULT_GAIN);
-        fprintf(stderr, "-s, --sampling_rate\tsets the sampling rate of the device (default: %d)\n", RATE_2M);
-        fprintf(stderr, "-f, --frequency\tsets the transmission frequency in MHz (default: %0.3f MHz)\n", FREQ_S / M);
-        fprintf(stderr, "-o, --stdout\twrite IQ data to STDOUT\n");
-        fprintf(stderr, "Advanced Options:\n");
-        fprintf(stderr, "-c, --carrier-offset\tsets the carrier offset frequency in Hz (default: %ld Hz)\n", DEFAULT_CARRIER_FREQ);
-        fprintf(stderr, "-a, --carrier-amplitude\tsets the carrier amplitude (default: %0.3f)\n", DEFAULT_CARRIER_AMPLITUDE);
-        fprintf(stderr, "-A, --tone-amplitude\tsets the tone amplitude (default: %0.3f)\n", DEFAULT_TONE_AMPLITUDE);
-        fprintf(stderr, "-b, --buffer-length\t (default: %ld)\n", DEFAULT_IQ_LEN);
-        fprintf(stderr, "-v, --version\tprints the name and version of this program\n");
-        fprintf(stderr, "-h, --helps\tprints this message\n");
+        print_help(stderr, basename(argv[0]));
         exit(1);
     }
 
