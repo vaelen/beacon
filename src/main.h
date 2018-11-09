@@ -62,6 +62,7 @@ struct beacon_config
 };
 
 const char *DEFAULT_URI = "ip:192.168.2.1";
+const char *LOCAL_URI = "local:";
 const double DEFAULT_CARRIER_AMPLITUDE = 100.0;
 const double DEFAULT_TONE_AMPLITUDE = 10.0;
 const long DEFAULT_TONE_FREQ = 500;
@@ -76,5 +77,6 @@ void init(struct beacon_config config);
 void main(int argc, char **argv);
 void transmit(struct beacon_config config);
 int write_iq_to_device(enum device device, complex *iq, long iq_len);
+const char *device_name(struct beacon_config config);
 
 #endif /* !FILE_MAIN_H_SEEN */

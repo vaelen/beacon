@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([beacon], [1.0], [andrew@vaelen.org])
+AC_INIT([beacon], [1.1], [andrew@vaelen.org])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])

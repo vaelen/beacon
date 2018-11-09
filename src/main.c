@@ -64,6 +64,7 @@ struct beacon_config parse_config(int argc, char **argv)
                 {"uhf", no_argument, 0, 'U'},
                 {"sband", no_argument, 0, 'S'},
                 {"stdout", no_argument, 0, 'o'},
+                {"local", no_argument, 0, 'l'},
                 {"help", no_argument, 0, 'h'},
                 {"version", no_argument, 0, 'v'},
                 {0, 0, 0, 0}};
@@ -71,7 +72,7 @@ struct beacon_config parse_config(int argc, char **argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        int c = getopt_long(argc, argv, "u:s:f:c:a:t:A:w:p:b:g:USohv",
+        int c = getopt_long(argc, argv, "u:s:f:c:a:t:A:w:p:b:g:USolhv",
                             long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -138,6 +139,10 @@ struct beacon_config parse_config(int argc, char **argv)
             config.device = DEVICE_FILE;
             break;
 
+        case 'l':
+            config.uri = LOCAL_URI;
+            break;
+
         case 'U':
             config.tx_freq = FREQ_U;
             break;
@@ -179,6 +184,7 @@ struct beacon_config parse_config(int argc, char **argv)
         fprintf(stderr, "-p, --padding\t sets the amount of time to pause between transmissions (default: %d)\n", DEFAULT_PADDING);
         fprintf(stderr, "Hardware Options:\n");
         fprintf(stderr, "-u, --uri\thardware URI (default: %s)\n", DEFAULT_URI);
+        fprintf(stderr, "-l, --local\tsets the hardware URI to %s (use this when running locally on the SDR).\n", LOCAL_URI);
         fprintf(stderr, "-g, --gain\tsets the hardware gain (0 to 90, default: %0.3f)\n", DEFAULT_GAIN);
         fprintf(stderr, "-s, --sampling_rate\tsets the sampling rate of the device (default: %d)\n", RATE_2M);
         fprintf(stderr, "-f, --frequency\tsets the transmission frequency in MHz (default: %0.3f MHz)\n", FREQ_S / M);
@@ -209,21 +215,8 @@ struct beacon_config parse_config(int argc, char **argv)
 
 void transmit(struct beacon_config config)
 {
-    char *device_name;
-    switch (config.device)
-    {
-    case DEVICE_ADALM:
-        device_name = "Adalm-Pluto";
-        break;
-    default:
-        device_name = "STDOUT";
-        break;
-    }
-
     long dit_len = calc_dit_len(config.samp_rate, config.wpm);
-    fprintf(stderr,
-            "Device: %s, Sampling Rate: %0.3f Ms/s, Gain: %0.3f, Frequency: %0.3f MHz, Carrier: %0.3f KHz, Tone: %ld Hz, WPM: %d, Samples Per Dit: %ld, Padding: %d, Message: %s\n",
-            device_name, config.samp_rate / M, config.gain, config.tx_freq / M, config.carrier_freq / K, config.tone_freq, config.wpm, dit_len, config.padding, config.message);
+    fprintf(stderr, "WPM: %d, Samples Per Dit: %ld, Padding: %d, Message: %s\n", config.wpm, dit_len, config.padding, config.message);
 
     complex carrier[config.iq_len], tone[config.iq_len];
     double carrier_start = 0, tone_start = 0;
@@ -295,10 +288,26 @@ int write_iq_to_device(enum device device, complex *iq, long iq_len)
     return iq_len;
 }
 
+const char *device_name(struct beacon_config config)
+{
+    switch (config.device)
+    {
+    case DEVICE_ADALM:
+        return "Adalm-Pluto";
+    default:
+        return "STDOUT";
+    }
+    return "";
+}
+
 void main(int argc, char **argv)
 {
     signal(SIGINT, handle_sig);
     struct beacon_config config = parse_config(argc, argv);
+    fprintf(stderr,
+            "Device: %s, URI: %s, Sampling Rate: %0.3f Ms/s, Gain: %0.3f, Frequency: %0.3f MHz, Carrier: %0.3f KHz, Tone: %ld Hz\n",
+            device_name(config), config.uri, config.samp_rate / M, config.gain, config.tx_freq / M, config.carrier_freq / K, config.tone_freq);
+
     init(config);
     transmit(config);
     shutdown(0);
