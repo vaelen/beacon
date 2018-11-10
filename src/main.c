@@ -43,26 +43,33 @@ void print_help(FILE *out, const char *executable_name)
     fprintf(out, "Broadcasts a CW (morse code) beacon.\n");
     fprintf(out, "\n");
     fprintf(out, "Common Options:\n");
-    fprintf(out, "-U, --uhf\ttransmit using default UHF frequency of %0.3f MHz\n", FREQ_U / M);
-    fprintf(out, "-S, --sband\ttransmit using default S-Band frequency %0.3f MHz (default)\n", FREQ_S / M);
+    fprintf(out, "-U, --uhf\t\ttransmit using default UHF frequency of %0.3f MHz\n", FREQ_U / M);
+    fprintf(out, "-S, --sband\t\ttransmit using default S-Band frequency %0.3f MHz\n", FREQ_S / M);
+    fprintf(out, "-m, --modulation\tsets the modulation (options: AM,FM default: AM)\n");
+    fprintf(out, "-A, --am\t\tsets the modulation to AM\n");
+    fprintf(out, "-F, --fm\t\tsets the modulation to FM\n");
+    fprintf(out, "\n");
     fprintf(out, "CW (morse code) Options:\n");
-    fprintf(out, "-t, --tone\tsets the tone frequency in Hz (default: %ld Hz)\n", DEFAULT_TONE_FREQ);
-    fprintf(out, "-w, --wpm\tsets the cw (morse code) speed in words per minute (default: %d WPM)\n", DEFAULT_WPM);
-    fprintf(out, "-p, --padding\t sets the amount of time to pause between transmissions (default: %d)\n", DEFAULT_PADDING);
+    fprintf(out, "-t, --tone\t\tsets the tone frequency in Hz (default: %ld Hz)\n", DEFAULT_TONE_FREQ);
+    fprintf(out, "-w, --wpm\t\tsets the cw (morse code) speed in words per minute (default: %d WPM)\n", DEFAULT_WPM);
+    fprintf(out, "-p, --padding\t\tsets the amount of time to pause between transmissions (default: %d)\n", DEFAULT_PADDING);
+    fprintf(out, "\n");
     fprintf(out, "Hardware Options:\n");
-    fprintf(out, "-u, --uri\thardware URI (default: %s)\n", DEFAULT_URI);
-    fprintf(out, "-l, --local\tsets the hardware URI to %s (use this when running locally on the SDR).\n", LOCAL_URI);
-    fprintf(out, "-g, --gain\tsets the hardware gain (0 to 90, default: %0.3f)\n", DEFAULT_GAIN);
-    fprintf(out, "-s, --sampling_rate\tsets the sampling rate of the device (default: %d)\n", RATE_2M);
-    fprintf(out, "-f, --frequency\tsets the transmission frequency in MHz (default: %0.3f MHz)\n", FREQ_S / M);
-    fprintf(out, "-o, --stdout\twrite IQ data to STDOUT\n");
+    fprintf(out, "-u, --uri\t\thardware URI (default: %s)\n", DEFAULT_URI);
+    fprintf(out, "-l, --local\t\tsets the hardware URI to %s (use this when running locally on the SDR).\n", LOCAL_URI);
+    fprintf(out, "-g, --gain\t\tsets the hardware gain (0 to 90, default: %0.3f)\n", DEFAULT_GAIN);
+    fprintf(out, "-s, --sampling_rate\tsets the sampling rate of the device (default: %d)\n", DEFAULT_SAMP_RATE);
+    fprintf(out, "-f, --frequency\t\tsets the transmission frequency in MHz (default: %0.3f MHz)\n", FREQ_S / M);
+    fprintf(out, "-o, --stdout\t\twrite IQ data to STDOUT\n");
+    fprintf(out, "\n");
     fprintf(out, "Advanced Options:\n");
     fprintf(out, "-c, --carrier-offset\tsets the carrier offset frequency in Hz (default: %ld Hz)\n", DEFAULT_CARRIER_FREQ);
-    fprintf(out, "-a, --carrier-amplitude\tsets the carrier amplitude (default: %0.3f)\n", DEFAULT_CARRIER_AMPLITUDE);
-    fprintf(out, "-A, --tone-amplitude\tsets the tone amplitude (default: %0.3f)\n", DEFAULT_TONE_AMPLITUDE);
-    fprintf(out, "-b, --buffer-length\t (default: %ld)\n", DEFAULT_IQ_LEN);
-    fprintf(out, "-v, --version\tprints version, copyright, and contact information\n");
-    fprintf(out, "-h, --helps\tprints this message\n");
+    fprintf(out, "-m, --modulation-index\tsets the modulation index (default: %0.3f)\n", DEFAULT_MODULATION_INDEX);
+    fprintf(out, "-b, --buffer-length\tsets the length of the internal IQ buffer (default: %ld)\n", DEFAULT_IQ_LEN);
+    fprintf(out, "\n");
+    fprintf(out, "Misc Options:\n");
+    fprintf(out, "-v, --version\t\tprints version, copyright, and contact information\n");
+    fprintf(out, "-h, --helps\\ttprints this message\n");
     fprintf(out, "\n");
     fprintf(out, "Copyright (C) 2018 Andrew C. Young (NU8W)\n");
     fprintf(out, "Homepage: <%s>\n", PACKAGE_URL);
@@ -77,17 +84,17 @@ struct beacon_config parse_config(int argc, char **argv)
     config.device = DEVICE_FILE;
 #endif
     config.uri = DEFAULT_URI;
-    config.samp_rate = RATE_2M;
-    config.tx_freq = FREQ_S;
+    config.samp_rate = DEFAULT_SAMP_RATE;
+    config.tx_freq = FREQ_U;
     config.carrier_freq = DEFAULT_CARRIER_FREQ;
-    config.carrier_amplitude = DEFAULT_CARRIER_AMPLITUDE;
     config.tone_freq = DEFAULT_TONE_FREQ;
-    config.tone_amplitude = DEFAULT_TONE_AMPLITUDE;
     config.wpm = DEFAULT_WPM;
     config.message = "";
     config.iq_len = DEFAULT_IQ_LEN;
     config.padding = DEFAULT_PADDING;
     config.gain = DEFAULT_GAIN;
+    config.modulation = MOD_AM;
+    config.modulation_index = DEFAULT_MODULATION_INDEX;
 
     bool help_flag = false;
 
@@ -99,15 +106,17 @@ struct beacon_config parse_config(int argc, char **argv)
                 {"sampling-rate", required_argument, 0, 's'},
                 {"frequency", required_argument, 0, 'f'},
                 {"carrier-offset", required_argument, 0, 'c'},
-                {"carrier-amplitude", required_argument, 0, 'a'},
+                {"modulation", required_argument, 0, 'm'},
+                {"modulation-index", required_argument, 0, 'i'},
                 {"tone", required_argument, 0, 't'},
-                {"tone-amplitude", required_argument, 0, 'A'},
                 {"wpm", required_argument, 0, 'w'},
                 {"padding", required_argument, 0, 'p'},
                 {"buffer-length", required_argument, 0, 'b'},
                 {"gain", required_argument, 0, 'g'},
                 {"uhf", no_argument, 0, 'U'},
                 {"sband", no_argument, 0, 'S'},
+                {"am", no_argument, 0, 'A'},
+                {"fm", no_argument, 0, 'F'},
                 {"stdout", no_argument, 0, 'o'},
                 {"local", no_argument, 0, 'l'},
                 {"help", no_argument, 0, 'h'},
@@ -117,7 +126,7 @@ struct beacon_config parse_config(int argc, char **argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        int c = getopt_long(argc, argv, "u:s:f:c:a:t:A:w:p:b:g:USolhv",
+        int c = getopt_long(argc, argv, "u:s:f:c:a:m:i:t:w:p:b:g:USolhv",
                             long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -152,16 +161,23 @@ struct beacon_config parse_config(int argc, char **argv)
             config.carrier_freq = atol(optarg);
             break;
 
-        case 'a':
-            config.carrier_amplitude = atof(optarg);
+        case 'i':
+            config.modulation_index = atof(optarg);
+            break;
+
+        case 'm':
+	    if (strcasecmp(optarg, "FM") == 0)
+	    {
+  	        config.modulation = MOD_FM;
+	    }
+	    else if (strcasecmp(optarg, "AM") == 0)
+	    {
+  	        config.modulation = MOD_AM;
+	    }
             break;
 
         case 't':
             config.tone_freq = atol(optarg);
-            break;
-
-        case 'A':
-            config.tone_amplitude = atof(optarg);
             break;
 
         case 'w':
@@ -194,6 +210,14 @@ struct beacon_config parse_config(int argc, char **argv)
 
         case 'S':
             config.tx_freq = FREQ_S;
+            break;
+
+        case 'A':
+ 	    config.modulation = MOD_AM;
+            break;
+
+        case 'F':
+            config.modulation = MOD_FM;
             break;
 
         case 'h':
@@ -239,9 +263,9 @@ void transmit(struct beacon_config config)
     long dit_len = calc_dit_len(config.samp_rate, config.wpm);
     fprintf(stderr, "WPM: %d, Samples Per Dit: %ld, Padding: %d, Message: %s\n", config.wpm, dit_len, config.padding, config.message);
 
-    complex carrier[config.iq_len], tone[config.iq_len];
-    double carrier_start = 0, tone_start = 0;
-    long samples = 0;
+    complex carrier[config.iq_len];
+    double tone[config.iq_len];
+    long carrier_start = 0, tone_start = 0, samples = 0;
     int i = 0;
     double amp = 0;
     double amp_delta = .1;
@@ -258,10 +282,18 @@ void transmit(struct beacon_config config)
 
     while (!stop)
     {
-        carrier_start = generate_signal(config.carrier_freq, config.carrier_amplitude, config.samp_rate, carrier, config.iq_len, carrier_start);
-        tone_start = generate_signal(config.tone_freq, config.tone_amplitude, config.samp_rate, tone, config.iq_len, tone_start);
+        carrier_start = generate_carrier(config.carrier_freq, config.samp_rate, carrier, config.iq_len, carrier_start);
+        tone_start = generate_tone(config.tone_freq, config.samp_rate, tone, config.iq_len, tone_start);
         state = modulate_cw(tone, config.iq_len, dit_len, cw_pattern, cw_pattern_length, state);
-        modulate_am(carrier, tone, config.iq_len);
+        switch(config.modulation)
+        {
+        case MOD_FM:
+            modulate_fm(carrier, tone, config.iq_len, config.modulation_index);
+            break;
+        default:
+            modulate_am(carrier, tone, config.iq_len, config.modulation_index);
+            break;
+        }
         samples = write_iq_to_device(config.device, carrier, config.iq_len);
         if (samples == 0)
         {
@@ -321,14 +353,28 @@ const char *device_name(struct beacon_config config)
     return "";
 }
 
+const char *modulation_name(struct beacon_config config)
+{
+    switch (config.modulation)
+    {
+    case MOD_FM:
+        return "FM";
+    default:
+        return "AM";
+    }
+    return "";
+}
+
 void main(int argc, char **argv)
 {
     signal(SIGINT, handle_sig);
     struct beacon_config config = parse_config(argc, argv);
     fprintf(stderr,
-            "Device: %s, URI: %s, Sampling Rate: %0.3f Ms/s, Gain: %0.3f, Frequency: %0.3f MHz, Carrier: %0.3f KHz, Tone: %ld Hz\n",
-            device_name(config), config.uri, config.samp_rate / M, config.gain, config.tx_freq / M, config.carrier_freq / K, config.tone_freq);
-
+            "Device: %s, URI: %s, Sampling Rate: %0.3f Ms/s, Gain: %0.3f, Transmission Frequency: %0.3f MHz\n",
+            device_name(config), config.uri, config.samp_rate / M, config.gain, config.tx_freq / M);
+    fprintf(stderr,
+            "Carrier Offset: %0.3f KHz, Tone Frequency: %ld Hz, Modulation: %s, Modulation Index: %.3f\n",
+            config.carrier_freq / K, config.tone_freq, modulation_name(config), config.modulation_index);
     init(config);
     transmit(config);
     shutdown(0);

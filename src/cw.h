@@ -42,7 +42,7 @@ int generate_cw_pattern(bool *pattern, int buffer_len, const char *message, int 
 /** Calculate the number of samples per dit. */
 long calc_dit_len(long samp_rate, int wpm);
 
-/** Modulate a CW signal on to the provided tone IQ data with the given CW message. */
-struct cw_state modulate_cw(complex *iq, int iq_len, int dit_len, bool *pattern, int pattern_len, struct cw_state state);
+/** Modulate a CW signal on to the provided tone samples with the given CW message. */
+struct cw_state modulate_cw(double *samples, int samples_len, int dit_len, bool *pattern, int pattern_len, struct cw_state state);
 
 #endif /* !FILE_CW_H_SEEN */

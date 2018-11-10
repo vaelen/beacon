@@ -123,11 +123,11 @@ long calc_dit_len(long samp_rate, int wpm)
     return samples_per_dit;
 }
 
-struct cw_state modulate_cw(complex *iq, int iq_len, int dit_len, bool *pattern, int pattern_len, struct cw_state state)
+struct cw_state modulate_cw(double *samples, int samples_len, int dit_len, bool *pattern, int pattern_len, struct cw_state state)
 {
-    for (int index = 0; index < iq_len; index++)
+    for (int index = 0; index < samples_len; index++)
     {
-        double i = cimag(iq[index]);
+        double i = samples[index];
 
         if (state.samples_left < 1 && i > -0.000001 && i < 0.00001)
         {
@@ -141,7 +141,7 @@ struct cw_state modulate_cw(complex *iq, int iq_len, int dit_len, bool *pattern,
 
         if (!state.value)
         {
-            iq[index] = 0 + 1 * I;
+            samples[index] = 0.0;
         }
     }
     return state;

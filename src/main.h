@@ -44,6 +44,12 @@ enum device
     DEVICE_ADALM
 };
 
+enum modulation
+{
+    MOD_AM,
+    MOD_FM
+};
+
 struct beacon_config
 {
     enum device device;
@@ -51,26 +57,26 @@ struct beacon_config
     long samp_rate;
     long tx_freq;
     long carrier_freq;
-    double carrier_amplitude;
     long tone_freq;
-    double tone_amplitude;
     int wpm;
     const char *message;
     long iq_len;
     int padding;
     double gain;
+    enum modulation modulation;
+    double modulation_index;
 };
 
 const char *DEFAULT_URI = "ip:192.168.2.1";
 const char *LOCAL_URI = "local:";
-const double DEFAULT_CARRIER_AMPLITUDE = 100.0;
-const double DEFAULT_TONE_AMPLITUDE = 10.0;
 const long DEFAULT_TONE_FREQ = 500;
 const long DEFAULT_CARRIER_FREQ = 10000;
 const int DEFAULT_WPM = 15;
 const long DEFAULT_IQ_LEN = 65536;
 const int DEFAULT_PADDING = 10;
-const double DEFAULT_GAIN = 50;
+const double DEFAULT_GAIN = 100;
+const double DEFAULT_SAMP_RATE = 1000000;
+const double DEFAULT_MODULATION_INDEX = 500;
 
 void print_version(FILE *out);
 void print_help(FILE *out, const char *executable_name);

@@ -24,6 +24,7 @@
 
 #include "../config.h"
 
+#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
@@ -32,10 +33,16 @@
 #define PI 3.14159265
 
 /** Generate a carrier signal at the given frequency */
-double generate_signal(long freq, double amplitude, long samp_rate, complex *iq, int iq_len, double start);
+long generate_tone(long freq, long samp_rate, double *samples, int sample_len, long start);
+
+/** Generate a carrier signal at the given frequency */
+long generate_carrier(long freq, long samp_rate, complex *iq, int iq_len, long start);
 
 /** Module a baseband signal onto a carrier signal using amplitude modulation, overwriting the carrier IQ data. */
-void modulate_am(complex *carrier, complex *baseband, int iq_len);
+void modulate_am(complex *carrier, double *baseband, int iq_len, double modulation_index);
+
+/** Module a baseband signal onto a carrier signal using frequency modulation, overwriting the carrier IQ data. */
+void modulate_fm(complex *carrier, double *baseband, int iq_len, double modulation_index);
 
 /** Write the given IQ data to a file. */
 void write_iq(FILE *out, complex *iq, int iq_len);
