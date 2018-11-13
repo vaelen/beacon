@@ -123,17 +123,28 @@ void modulate_fm(complex *carrier, double *baseband, int iq_len, double modulati
     {
         double carrier_i = cimag(carrier[index]);
         double carrier_q = creal(carrier[index]);
-        double baseband_i = cimag(baseband[index]);
-        double baseband_q = creal(carrier[index]);
 
-        complex modulated = 0 + cos(2*PI*((carrier_i+100) * baseband_i)) * I;
+        double theta_i = acos(carrier_i);
+        double theta_q = asin(carrier_q);
 
-        carrier[index] = carrier[index] + modulated;
+        double modulated_i = sin(2*PI*((carrier_i + modulation_index) * baseband[index]));
+        double modulated_q = cos(2*PI*((carrier_q + modulation_index) * baseband[index]));
+
+        carrier[index] = modulated_q + modulated_i * I;
     }
 }
 
 void write_iq(FILE *out, complex *iq, int iq_len)
 {
-    fwrite(iq, sizeof(complex), iq_len, out);
+    uint32_t buf[iq_len*2];
+    for (int index = 0; index < iq_len; index++)
+    {
+        double i = cimag(iq[index]);
+        double q = creal(iq[index]);
+        buf[(index*2)] = htole32((uint32_t)i);
+        buf[(index*2)+1] = htole32((uint32_t)q);
+                    
+    }
+    fwrite(buf, sizeof(uint32_t), iq_len*2, out);
     fflush(out);
 }
