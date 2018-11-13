@@ -25,6 +25,7 @@
 #include "../config.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
@@ -34,11 +35,35 @@
 
 #define PI 3.14159265
 
+struct sample_table
+{
+    double *samples;
+    long len;
+};
+
+struct iq_table
+{
+    complex *values;
+    long len;
+};
+
+struct iq_state
+{
+    struct sample_table table;
+    struct sample_table samples;
+    struct iq_table iq;
+    long start;
+};
+
+
+/** Free memory used by a iq_state struct. */
+void destroy_iq_state(struct iq_state *state);
+    
 /** Generate a carrier signal at the given frequency */
-long generate_tone(long freq, long samp_rate, double *samples, int sample_len, long start);
+struct iq_state* generate_tone(long freq, long samp_rate, double *samples, int sample_len, struct iq_state *state);
 
 /** Generate a carrier signal at the given frequency */
-long generate_carrier(long freq, long samp_rate, complex *iq, int iq_len, long start);
+struct iq_state* generate_carrier(long freq, long samp_rate, complex *iq, int iq_len, struct iq_state *state);
 
 /** Module a baseband signal onto a carrier signal using amplitude modulation, overwriting the carrier IQ data. */
 void modulate_am(complex *carrier, double *baseband, int iq_len, double modulation_index);

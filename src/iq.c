@@ -20,14 +20,6 @@
 
 #include "iq.h"
 
-//#define DEBUG
-
-struct sample_table
-{
-  double *samples;
-  long len;
-};
-
 struct sample_table generate_sample_table(long freq, long samp_rate)
 {
     assert(samp_rate >= 2 * freq);
@@ -52,47 +44,174 @@ struct sample_table generate_sample_table(long freq, long samp_rate)
     return table;
 }
 
-long generate_tone(long freq, long samp_rate, double *samples, int samples_len, long start)
+
+struct iq_state* init_state(long freq, long samp_rate)
 {
-
-    double theta = 0.0;
-  
-    struct sample_table table = generate_sample_table(freq, samp_rate);
-    
-    for (int index = 0; index < samples_len; index++)
-    {
-        start = (start + 1) % table.len;
-        theta = table.samples[start];
-        samples[index] = cos(theta);
-    }
-
-    free(table.samples);
-    return start;
+    struct iq_state *state = malloc(sizeof(struct iq_state));
+    state->start = 0;
+    state->table = generate_sample_table(freq, samp_rate);
+    state->iq.values = NULL;
+    state->samples.samples = NULL;
+    return state;
 }
 
-long generate_carrier(long freq, long samp_rate, complex *iq, int iq_len, long start)
+void destroy_iq_state(struct iq_state *state)
 {
-    double i = 0.0, q = 0.0, theta = 0.0;
-
-    struct sample_table table = generate_sample_table(freq, samp_rate);
-    
-    for (int index = 0; index < iq_len; index++)
+    if (state != NULL)
     {
-        start = (start + 1) % table.len;
-        theta = table.samples[start];
-        i = cos(theta);
-        q = sin(theta);
+        if (state->table.samples != NULL)
+        {
+            free(state->table.samples);
+        }
+        if (state->samples.samples != NULL)
+        {
+            free(state->samples.samples);
+        }
+        if (state->iq.values != NULL)
+        {
+            free(state->iq.values);
+        }
+        free(state);
+    }
+}
 
-#ifdef DEBUG
-        fprintf(stderr, "freq: %ld, samp_rate: %ld, index: %d, theta: %f, i: %f, q: %f\n", freq, samp_rate, index, theta, i, q);
-#endif
+struct iq_state *generate_tone(long freq, long samp_rate, double *samples, int samples_len, struct iq_state *state)
+{
+    double theta = 0.0;
+    double value = 0.0;
+    int index = 0;
 
-        iq[index] = q + i * I;
-
+    if (state == NULL)
+    {
+        state = init_state(freq, samp_rate);
     }
 
-    free(table.samples);
-    return start;
+    if (state->samples.samples == NULL)
+    {
+        state->samples.len = state->table.len;
+        state->samples.samples = malloc(sizeof(double)*state->table.len);
+        for (index = 0; index < state->samples.len; index++)
+        {
+            theta = state->table.samples[index];
+            value = cos(theta);
+            state->samples.samples[index] = value;
+#ifdef DEBUG
+            fprintf(stderr, "freq: %ld, samp_rate: %ld, index: %d, len: %ld, theta: %0.3f, value: %0.3f\n", freq, samp_rate, index, state->samples.len, theta, i, q);
+#endif
+        }
+    }
+
+    long start = state->start;
+    double *current = samples;
+    long left = samples_len;
+
+    double *precomputed = state->samples.samples;
+    long precomputed_len = state->samples.len;
+
+    if (start > 0)
+    {
+#ifdef DEBUG
+        fprintf(stderr, "Align Tone, start: %ld\n", start);
+#endif
+        // Align to the start of the pre-computed IQ
+        double *align = precomputed += start;
+        long align_len = precomputed_len-start;
+        memcpy(current, align, align_len);
+        current += align_len;
+        left -= align_len;
+    }
+
+    while (left >= precomputed_len)
+    {
+#ifdef DEBUG
+        fprintf(stderr, "Copy Tone, left: %ld\n", left);
+#endif
+        memcpy(current, precomputed, precomputed_len);
+        current += precomputed_len;
+        left -= precomputed_len;
+    }
+
+    if (left > 0)
+    { 
+#ifdef DEBUG
+        fprintf(stderr, "Fill Remaining Tone, left: %ld\n", left);
+#endif
+        // Fill the remaining samples
+        memcpy(current, precomputed, left);
+    }
+
+    state->start = left;
+
+    return state;
+}
+
+struct iq_state* generate_carrier(long freq, long samp_rate, complex *iq, int iq_len, struct iq_state *state)
+{
+    double i = 0.0, q = 0.0, theta = 0.0;
+    int index = 0;
+
+    if (state == NULL)
+    {
+        state = init_state(freq, samp_rate);
+    }
+    if (state->iq.values == NULL)
+    {
+        state->iq.len = state->table.len;
+        state->iq.values = malloc(sizeof(complex)*state->iq.len);
+        for (index = 0; index < state->iq.len; index++)
+        {
+            theta = state->table.samples[index];
+            i = cos(theta);
+            q = sin(theta);
+#ifdef DEBUG
+            fprintf(stderr, "freq: %ld, samp_rate: %ld, index: %d, len: %ld, theta: %f, i: %f, q: %f\n", freq, samp_rate, index, state->iq.len, theta, i, q);
+#endif
+            state->iq.values[index] = q + i * I;
+        }
+    }
+
+    long start = state->start;
+    complex *current = iq;
+    long left = iq_len;
+
+    complex *precomputed = state->iq.values;
+    long precomputed_len = state->iq.len;
+
+    if (start > 0)
+    {
+#ifdef DEBUG
+        fprintf(stderr, "Align Carrier IQ, start: %ld\n", start);
+#endif
+        // Align to the start of the pre-computed IQ
+        complex *align = precomputed += start;
+        long align_len = precomputed_len-start;
+        memcpy(current, align, align_len);
+        current += align_len;
+        left -= align_len;
+    }
+
+    while (left >= precomputed_len)
+    {
+#ifdef DEBUG
+        fprintf(stderr, "Copy Carrier IQ, left: %ld\n", left);
+#endif
+        memcpy(current, precomputed, precomputed_len);
+        current += precomputed_len;
+        left -= precomputed_len;
+    }
+
+    if (left > 0)
+    { 
+#ifdef DEBUG
+        fprintf(stderr, "Fill Remaining Carrier IQ, left: %ld\n", left);
+#endif
+        // Fill the remaining samples
+        memcpy(current, precomputed, left);
+    }
+
+    state->start = left;
+    
+    return state;
 }
 
 void modulate_am(complex *carrier, double *baseband, int iq_len, double modulation_index)

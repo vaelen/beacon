@@ -263,12 +263,11 @@ void transmit(struct beacon_config config)
     long dit_len = calc_dit_len(config.samp_rate, config.wpm);
     fprintf(stderr, "WPM: %d, Samples Per Dit: %ld, Padding: %d, Message: %s\n", config.wpm, dit_len, config.padding, config.message);
 
-    complex carrier[config.iq_len];
-    double tone[config.iq_len];
-    long carrier_start = 0, tone_start = 0, samples = 0;
-    int i = 0;
-    double amp = 0;
-    double amp_delta = .1;
+    long samples = 0;
+    
+    complex *carrier = malloc(sizeof(complex)*config.iq_len);
+    double *tone = malloc(sizeof(double)*config.iq_len);
+    struct iq_state *carrier_state = NULL, *tone_state = NULL;
 
     struct cw_state state;
     state.element = 0;
@@ -282,8 +281,9 @@ void transmit(struct beacon_config config)
 
     while (!stop)
     {
-        carrier_start = generate_carrier(config.carrier_freq, config.samp_rate, carrier, config.iq_len, carrier_start);
-        tone_start = generate_tone(config.tone_freq, config.samp_rate, tone, config.iq_len, tone_start);
+        carrier_state = generate_carrier(config.carrier_freq, config.samp_rate, carrier, config.iq_len, carrier_state);
+        tone_state = generate_tone(config.tone_freq, config.samp_rate, tone, config.iq_len, tone_state);
+        /*
         state = modulate_cw(tone, config.iq_len, dit_len, cw_pattern, cw_pattern_length, state);
         switch(config.modulation)
         {
@@ -305,7 +305,12 @@ void transmit(struct beacon_config config)
             fprintf(stderr, "Wrote %ld Samples.\n", samples);
         }
 #endif
+        */
     }
+    destroy_iq_state(carrier_state);
+    destroy_iq_state(tone_state);
+    free(carrier);
+    free(tone);
 }
 
 void init(struct beacon_config config)
